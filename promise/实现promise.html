@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实现Promise</title>
+</head>
+<body>
+    <script type="text/javascript">
+
+    // 定义状态
+    const PENDING = 'pending'
+    const FULFILLED = 'fulfilled'
+    const REJECTED = 'rejected'
+
+    class MyPromise {
+        constructor(handle){
+            //0. 初始化默认状态
+            this.status = PENDING
+
+            // 保留参数
+            this.value = undefined
+            this.reason = undefined
+
+            // 保留多个 then cath
+            this.onResolveCallBacks = []
+            this.onRejectCallBacks = []
+
+            //判断是否传入了一个函数
+            if(!this._isFunction(handle)) {
+                throw new Error('请传入一个函数')
+            }
+        
+            //2. 调用传入的参数， 绑定 _resolve 与 _reject
+            handle(this._resolve.bind(this), this._reject.bind(this))
+        }
+
+        _resolve(value){
+            if(this.status === PENDING) {
+                this.status = FULFILLED
+                this.value = value
+                this.onResolveCallBacks.forEach((onResolveCallBack)=>{
+                    onResolveCallBack(this.value)
+                })
+            }
+            
+        }
+        _reject(reason){
+            if(this.status === PENDING) {
+                this.status = REJECTED
+                this.reason = reason
+                this.onRejectCallBacks.forEach((onRejectCallBack)=>{
+                    onRejectCallBack(this.reason)
+                })
+            }
+            
+        }
+
+        _isFunction(fun) {
+            return typeof fun === 'function'
+        }
+
+        catch(onRejected) {
+            this.then(undefined, onRejected)
+        }
+
+        then(onResolved, onRejected) {
+            //返回新的Promise
+            return new MyPromise((nextResolve, nextReject)=>{
+                //判断当前promise状态，如果是成功
+                if (this._isFunction(onResolved)) {
+                    if (this.status === FULFILLED) {
+                        try {
+                            let result = onResolved(this.value)
+                            if (result instanceof MyPromise) {
+                                result.then(nextResolve, nextReject)
+                            } else {
+                                nextResolve(result)
+                            }
+                        }catch(e){
+                            nextReject(e)
+                        }
+                        
+                    }
+                }
+
+                // if (this._isFunction(onRejected)) {
+                    //判断当前promise状态，如果是失败
+                    if (this.status === REJECTED) {
+                        try {
+                            let result = onRejected(this.reason)
+                            if (result instanceof MyPromise) {
+                                result.then(nextResolve, nextReject)
+                            } else if (result !== undefined) {
+                                //返回值不是promise，则将返回值传递给下一个promise的then
+                                nextResolve(result)
+                            } else {
+                                //如果没有返回值，下一个promise的状态跟随当前promise
+                                nextReject()
+                            }
+                        }catch(e){
+                            nextReject(e)
+                        }
+                    }
+                // }
+
+                // 如果当前状态是PENDING
+                if(this.status === PENDING) {
+                    if (this._isFunction(onResolved)) {
+                        //保留参数，等到状态改变的时候触发调用
+                        this.onResolveCallBacks.push(()=>{
+                            try {
+                                let result = onResolved(this.value)
+                                if (result instanceof MyPromise) {
+                                    result.then(nextResolve, nextReject)
+                                } else {
+                                    nextResolve(result)
+                                }
+                            }catch(e){
+                                nextReject(e)
+                            }
+                        })
+                    }
+                    // if (this._isFunction(onRejected)) {
+                        //保留参数，等到状态改变的时候触发调用
+                        this.onRejectCallBacks.push(()=>{
+                            try {
+                                let result = onRejected(this.reason)
+                                if (result instanceof MyPromise) {
+                                    result.then(nextResolve, nextReject)
+                                } else if (result !== undefined) {
+                                    nextResolve(result)
+                                } else {
+                                    nextReject()
+                                }
+                            } catch(e) {
+                                nextReject(e)
+                            }
+                            
+                        })
+                    // }  
+            }
+            })
+        }
+    }
+    
+    /*
+    let p1 = new Promise(function(resolve, reject) {
+        resolve('1')
+    })
+    let p2 = new Promise(function(resolve, reject) {
+        reject('2')
+    })
+    let p3 = new Promise(function(resolve, reject) {
+        resolve('3')
+    })
+
+    Promise.all([p1, p2, p3]).then(function(value){
+        console.log(value)
+    }).catch(function(e) {
+        console.log(e) // [1, 2, 3]
+    })
+    */
+    let p1 = new Promise(function(resolve, reject) {
+        setTimeout(() => {
+            resolve('1') 
+        }, 2000);
+    })
+    let p2 = new Promise(function(resolve, reject) {
+        setTimeout(() => {
+            reject('2')
+        }, 1000);
+    })
+
+    Promise.race([p1, p2]).then(function(value){
+        console.log(value)
+    }).catch(function(e){
+        console.log('失败-'+ e)
+    })
+
+
+    </script>
+</body>
+</html>

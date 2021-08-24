@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promise</title>
+</head>
+<body>
+    <script type="text/javascript">
+            
+        function request(successCallback) {
+            //使用setTimeout模拟网络请求
+            setTimeout(function(){
+                successCallback('获取数据成功');
+            }, 1000);
+        }
+
+        //A开始请求
+        request((result)=>{
+            //A请求成功
+            console.log(result + '---A');
+            //B开始请求
+            request((result)=>{
+                //B请求成功
+                console.log(result + '---B');
+                //C开始请求
+                request((result)=>{
+                    //C请求成功
+                    console.log(result + '---C');
+                })  
+            })
+        })
+    </script>
+</body>
+</html>
