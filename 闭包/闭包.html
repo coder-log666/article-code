@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>闭包</title>
-</head>
-<body>
-    <div id='root'></div>
+  </head>
+  <body>
+    <div id="root"></div>
+    <p id="help">Helpful notes will appear here</p>
+    <p>E-mail: <input type="text" id="email" name="email" /></p>
+    <p>Name: <input type="text" id="name" name="name" /></p>
+    <p>Age: <input type="text" id="age" name="age" /></p>
     <script>
-        /*
+      /*
         function block() {
             let name = 'RiverLi'
             function dispayName() {
@@ -18,6 +22,8 @@
         }
         block()
         */
+
+      /*
         function block() {
             let name = 'RiverLi'
             function dispayName() {
@@ -27,8 +33,102 @@
         }
         let fun = block()
         fun()
+        */
+      /*
+        function block(name) {
+            function dispayName() {
+                console.log(name)
+            }
+            return dispayName
+        }
+        let fun = block('1111')
+        fun()
+        let fun2 = block('2222')
+        fun2()
+        */
 
-        
+      /*
+        function Counter() {
+            let _value = 0;
+            function changeValue(num) {
+                _value += num
+            }
+            return {
+                increment: function() {
+                    changeValue(1)
+                },
+                decrement: function() {
+                    changeValue(-1)
+                },
+                value: function() {
+                    return _value
+                }
+            }
+        }
+
+        let counter1 = Counter()
+        counter1.increment()
+        counter1.increment()
+        console.log(counter1.value())
+        counter1.decrement()
+        console.log(counter1.value())
+        */
+
+      function showHelp(help) {
+        document.getElementById("root").innerHTML = help;
+      }
+
+      function makeHelper(help) {
+        return function() {
+            showHelp(help)
+        }
+      }
+
+      function setupHelp() {
+        var helpText = [
+          { id: "email", help: "Your e-mail address" },
+          { id: "name", help: "Your full name" },
+          { id: "age", help: "Your age (you must be over 16)" },
+        ];
+
+        for (var i = 0; i < helpText.length; i++) {
+          var item = helpText[i];
+          document.getElementById(item.id).onfocus = function () {
+            showHelp(item.help);
+          };
+        }
+
+        /*
+        //使用更多的闭包
+        for (var i = 0; i < helpText.length; i++) {
+          var item = helpText[i];
+          document.getElementById(item.id).onfocus = makeHelper(item.help)
+        }
+        */
+
+        /*
+        //是用let 解决闭包
+        for (var i = 0; i < helpText.length; i++) {
+          let item = helpText[i];
+          document.getElementById(item.id).onfocus = function () {
+            showHelp(item.help);
+          };
+        }
+        */
+
+        /*
+        //使用匿名函数解决闭包
+        for (var i = 0; i < helpText.length; i++) {
+          (function () {
+            var item = helpText[i];
+            document.getElementById(item.id).onfocus = function () {
+              showHelp(item.help);
+            };
+          })();
+        }
+        */
+      }
+      setupHelp();
     </script>
-</body>
+  </body>
 </html>
